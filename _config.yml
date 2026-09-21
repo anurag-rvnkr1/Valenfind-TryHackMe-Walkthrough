@@ -1,0 +1,14 @@
+title: "Valenfied — TryHackMe"
+description: "Professional Valenfied lab documentation."
+
+theme: jekyll-theme-primer
+
+plugins:
+  - jekyll-relative-links
+
+relative_links:
+  enabled: true
+  collections: true
+
+include:
+  - docs

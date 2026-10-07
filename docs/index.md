@@ -132,7 +132,6 @@ Demonstrate practical experience with web application security, Linux enumeratio
 ---
 
 ## Navigation
-
 <div class="ctf-toc">
 
 <div class="ctf-toc-title">Documentation Map</div>
@@ -160,7 +159,6 @@ Demonstrate practical experience with web application security, Linux enumeratio
 - [Conclusion](#conclusion)
 
 </div>
-
 ---
 
 ## Attack Surface

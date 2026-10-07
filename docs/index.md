@@ -134,29 +134,31 @@ Demonstrate practical experience with web application security, Linux enumeratio
 ## Navigation
 <div class="ctf-toc">
 
-<div class="ctf-toc-title">Documentation Map</div>
+<div class="ctf-toc-title">Navigation</div>
 
-- [Mission](#mission)
-- [Quick Overview](#quick-overview)
-- [Attack Surface](#attack-surface)
-- [Attack Chain](#attack-chain)
-- [Reconnaissance](#reconnaissance)
-- [Application Exploration](#application-exploration)
-- [Network Traffic Analysis](#network-traffic-analysis)
-- [Local File Inclusion](#local-file-inclusion)
-- [Source Code Analysis](#source-code-analysis)
-- [Administrative Endpoint Discovery](#administrative-endpoint-discovery)
-- [SQLite Database Analysis](#sqlite-database-analysis)
-- [Security Findings](#security-findings)
-- [Security Impact](#security-impact)
-- [Remediation Recommendations](#remediation-recommendations)
-- [Tools Used](#tools-used)
-- [Key Findings](#key-findings)
-- [Lessons Learned](#lessons-learned)
-- [Repository Structure](#repository-structure)
-- [Full Technical Documentation](#full-technical-documentation)
-- [Responsible Use](#responsible-use)
-- [Conclusion](#conclusion)
+<ul>
+  <li><a href="#mission">Mission</a></li>
+  <li><a href="#quick-overview">Quick Overview</a></li>
+  <li><a href="#attack-surface">Attack Surface</a></li>
+  <li><a href="#attack-chain">Attack Chain</a></li>
+  <li><a href="#reconnaissance">Reconnaissance</a></li>
+  <li><a href="#application-exploration">Application Exploration</a></li>
+  <li><a href="#network-traffic-analysis">Network Traffic Analysis</a></li>
+  <li><a href="#local-file-inclusion">Local File Inclusion</a></li>
+  <li><a href="#source-code-analysis">Source Code Analysis</a></li>
+  <li><a href="#administrative-endpoint-discovery">Administrative Endpoint Discovery</a></li>
+  <li><a href="#sqlite-database-analysis">SQLite Database Analysis</a></li>
+  <li><a href="#security-findings">Security Findings</a></li>
+  <li><a href="#security-impact">Security Impact</a></li>
+  <li><a href="#remediation-recommendations">Remediation Recommendations</a></li>
+  <li><a href="#tools-used">Tools Used</a></li>
+  <li><a href="#key-findings">Key Findings</a></li>
+  <li><a href="#lessons-learned">Lessons Learned</a></li>
+  <li><a href="#repository-structure">Repository Structure</a></li>
+  <li><a href="#full-technical-documentation">Full Technical Documentation</a></li>
+  <li><a href="#responsible-use">Responsible Use</a></li>
+  <li><a href="#conclusion">Conclusion</a></li>
+</ul>
 
 </div>
 ---

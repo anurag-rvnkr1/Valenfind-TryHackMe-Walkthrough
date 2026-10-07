@@ -1,461 +1,1017 @@
-# 💘 Valenfind — TryHackMe CTF Walkthrough
+---
+layout: default
+title: "Valenfind — TryHackMe CTF"
+description: "Professional security analysis of the TryHackMe Valenfind room, documenting reconnaissance, Local File Inclusion, Flask source-code disclosure, administrative API access, SQLite analysis, and remediation."
+category: "Web Application Security"
+tags:
+  - TryHackMe
+  - Web Security
+  - LFI
+  - Flask
+  - SQLite
+  - Source Code Analysis
+---
 
-<div align="center">
+<div class="ctf-hero">
 
-![Valenfind Banner](assets/room-banner.png)
+<h1>Valenfind</h1>
 
-# Valenfind — TryHackMe Walkthrough
+<p>
+  A professional security analysis of the <strong>Valenfind</strong> TryHackMe room,
+  documenting reconnaissance, web application analysis, Local File Inclusion,
+  source-code disclosure, administrative API access, SQLite investigation,
+  security impact, and remediation.
+</p>
 
-**A Professional Capture-the-Flag (CTF) Documentation & Security Analysis**
-
-[![TryHackMe](https://img.shields.io/badge/TryHackMe-Valenfind-red?style=for-the-badge\&logo=tryhackme)](https://tryhackme.com/)
-![Difficulty](https://img.shields.io/badge/Difficulty-Easy-success?style=for-the-badge)
-![Category](https://img.shields.io/badge/Category-Web%20Security-blue?style=for-the-badge)
-![Focus](https://img.shields.io/badge/Focus-LFI%20%7C%20Source%20Code%20Analysis-purple?style=for-the-badge)
-![Portfolio](https://img.shields.io/badge/Portfolio-Cybersecurity-111827?style=for-the-badge)
-
-*A complete security walkthrough documenting the methodology, reconnaissance, vulnerability discovery, exploitation process, and remediation of the **Valenfind** TryHackMe room.*
+<div class="ctf-badges">
+  <span class="ctf-badge">TryHackMe</span>
+  <span class="ctf-badge">Easy</span>
+  <span class="ctf-badge">Web Application Security</span>
+  <span class="ctf-badge">LFI</span>
+  <span class="ctf-badge">Flask</span>
+  <span class="ctf-badge">SQLite</span>
+</div>
 
 </div>
 
 ---
 
-## 📌 About This Walkthrough
+## Mission
 
-This GitHub Pages site documents my complete solution to the **Valenfind** Capture-the-Flag room from **TryHackMe**. The walkthrough follows a realistic penetration testing workflow, beginning with reconnaissance and ending with vulnerability remediation.
+The objective of this walkthrough is to document the complete security assessment of the **Valenfind** TryHackMe room.
 
-Unlike a simple write-up, this documentation explains **why each action was performed**, **what vulnerability was identified**, and **how the findings map to secure software development practices**.
-
-> **Portfolio Goal**
->
-> Demonstrate practical skills in web application security, vulnerability analysis, Linux enumeration, Flask application review, SQLite analysis, and secure coding remediation.
-
----
-
-# 🎯 Learning Objectives
-
-After completing this room, I was able to:
-
-* Perform reconnaissance against a target web application.
-* Enumerate exposed directories and application endpoints.
-* Identify a **Local File Inclusion (LFI)** vulnerability.
-* Read sensitive files from a Linux server through directory traversal.
-* Analyze Flask source code to identify insecure development practices.
-* Discover a hardcoded administrative secret inside application code.
-* Access a restricted administrative API endpoint.
-* Analyze an exported SQLite database.
-* Explain the complete attack chain and recommend secure mitigations.
-
----
-
-# 🧭 Walkthrough Navigation
-
-| Phase        | Description                                |
-| ------------ | ------------------------------------------ |
-| **Phase 1**  | Reconnaissance with Nmap and Gobuster      |
-| **Phase 2**  | Application Exploration and Authentication |
-| **Phase 3**  | Network Traffic Inspection                 |
-| **Phase 4**  | Local File Inclusion Discovery             |
-| **Phase 5**  | Source Code Review                         |
-| **Phase 6**  | Administrative Endpoint Analysis           |
-| **Phase 7**  | SQLite Database Investigation              |
-| **Phase 8**  | Security Findings & Attack Chain           |
-| **Phase 9**  | Vulnerability Remediation                  |
-| **Phase 10** | Key Takeaways                              |
-
----
-
-# 🏠 Lab Overview
-
-| Information               | Value                                                                     |
-| ------------------------- | ------------------------------------------------------------------------- |
-| **Platform**              | TryHackMe                                                                 |
-| **Room**                  | Valenfind                                                                 |
-| **Category**              | Web Application Security                                                  |
-| **Difficulty**            | Easy                                                                      |
-| **Primary Vulnerability** | Local File Inclusion (LFI)                                                |
-| **Framework**             | Python Flask                                                              |
-| **Database**              | SQLite                                                                    |
-| **Operating System**      | Linux                                                                     |
-| **Skills Demonstrated**   | Enumeration, LFI, Source Code Analysis, API Testing, SQLite Investigation |
-
----
-
-# 🧱 Attack Surface Overview
-
-The Valenfind application is a Python Flask web application running on **port 5000**.
-
-During enumeration, the following attack surface was identified:
-
-* Authentication pages.
-* User dashboard.
-* User profile pages.
-* Dynamic theme loading endpoint.
-* Hidden administrative API.
-* SQLite backend database.
-
----
-
-## Attack Path Summary
-
-![Attack Flow Diagram](assets/remediation/attack-flow-diagram.png)
-
-<table><tr><td>
-
-### Kill Chain
+The assessment follows a structured penetration-testing workflow:
 
 1. Reconnaissance
-2. Directory Enumeration
-3. Network Request Inspection
-4. Local File Inclusion
-5. Source Code Disclosure
-6. Secret Discovery
-7. Administrative API Access
-8. Database Export
-9. Sensitive Information Disclosure
+2. Directory and endpoint enumeration
+3. Application exploration
+4. Network request inspection
+5. Local File Inclusion discovery
+6. Flask source-code analysis
+7. Administrative endpoint discovery
+8. SQLite database investigation
+9. Security-impact analysis
+10. Remediation recommendations
 
-</td></tr></table>
+The documentation is designed to demonstrate not only how the application was compromised within the lab, but also **why each step mattered from a security perspective**.
+
+<div class="key-finding">
+
+<div class="key-finding-title">Portfolio Objective</div>
+
+Demonstrate practical experience with web application security, Linux enumeration, Flask application review, Local File Inclusion, API testing, SQLite analysis, and secure-coding remediation.
+
+</div>
 
 ---
 
-# ⚔️ Phase 1 — Reconnaissance
+## Quick Overview
 
-The assessment began with identifying exposed services and web application endpoints.
+<div class="ctf-card-grid">
+
+<div class="ctf-card">
+  <div class="ctf-card-title">Platform</div>
+  <div class="ctf-card-value">TryHackMe</div>
+</div>
+
+<div class="ctf-card">
+  <div class="ctf-card-title">Room</div>
+  <div class="ctf-card-value">Valenfind</div>
+</div>
+
+<div class="ctf-card">
+  <div class="ctf-card-title">Difficulty</div>
+  <div class="ctf-card-value">Easy</div>
+</div>
+
+<div class="ctf-card">
+  <div class="ctf-card-title">Category</div>
+  <div class="ctf-card-value">Web Application Security</div>
+</div>
+
+<div class="ctf-card">
+  <div class="ctf-card-title">Primary Vulnerability</div>
+  <div class="ctf-card-value">Local File Inclusion (LFI)</div>
+</div>
+
+<div class="ctf-card">
+  <div class="ctf-card-title">Framework</div>
+  <div class="ctf-card-value">Python Flask</div>
+</div>
+
+<div class="ctf-card">
+  <div class="ctf-card-title">Database</div>
+  <div class="ctf-card-value">SQLite</div>
+</div>
+
+<div class="ctf-card">
+  <div class="ctf-card-title">Operating System</div>
+  <div class="ctf-card-value">Linux</div>
+</div>
+
+</div>
+
+### Skills Demonstrated
+
+<div class="tool-list">
+
+<span class="tool-tag">Linux Enumeration</span>
+<span class="tool-tag">Nmap</span>
+<span class="tool-tag">Gobuster</span>
+<span class="tool-tag">Browser Developer Tools</span>
+<span class="tool-tag">HTTP Analysis</span>
+<span class="tool-tag">LFI</span>
+<span class="tool-tag">Directory Traversal</span>
+<span class="tool-tag">Flask Source Review</span>
+<span class="tool-tag">API Testing</span>
+<span class="tool-tag">SQLite Investigation</span>
+<span class="tool-tag">Secure Coding</span>
+
+</div>
+
+---
+
+## Navigation
+
+<div class="ctf-toc">
+
+<div class="ctf-toc-title">Documentation Map</div>
+
+- [Mission](#mission)
+- [Quick Overview](#quick-overview)
+- [Attack Surface](#attack-surface)
+- [Attack Chain](#attack-chain)
+- [Reconnaissance](#reconnaissance)
+- [Application Exploration](#application-exploration)
+- [Network Traffic Analysis](#network-traffic-analysis)
+- [Local File Inclusion](#local-file-inclusion)
+- [Source Code Analysis](#source-code-analysis)
+- [Administrative Endpoint Discovery](#administrative-endpoint-discovery)
+- [SQLite Database Analysis](#sqlite-database-analysis)
+- [Security Findings](#security-findings)
+- [Security Impact](#security-impact)
+- [Remediation Recommendations](#remediation-recommendations)
+- [Tools Used](#tools-used)
+- [Key Findings](#key-findings)
+- [Lessons Learned](#lessons-learned)
+- [Repository Structure](#repository-structure)
+- [Full Technical Documentation](#full-technical-documentation)
+- [Responsible Use](#responsible-use)
+- [Conclusion](#conclusion)
+
+</div>
+
+---
+
+## Attack Surface
+
+The Valenfind application is documented as a **Python Flask web application running on port 5000**.
+
+The assessment identified the following application attack surface:
+
+| Attack Surface | Description |
+|---|---|
+| Authentication | Registration and login functionality |
+| User Dashboard | Authenticated application functionality |
+| User Profiles | Profile-management functionality |
+| Profile Theme | User-controlled theme selection |
+| Dynamic Layout Endpoint | `/api/fetch_layout` |
+| Administrative API | Restricted administrative functionality |
+| Backend Database | SQLite database |
+
+The most significant attack surface discovered during application analysis was the dynamic layout-loading functionality.
+
+---
+
+## Attack Chain
+
+<div class="attack-chain">
+
+<div class="attack-step">Reconnaissance</div>
+
+<div class="attack-arrow">→</div>
+
+<div class="attack-step">Directory Enumeration</div>
+
+<div class="attack-arrow">→</div>
+
+<div class="attack-step">Request Inspection</div>
+
+<div class="attack-arrow">→</div>
+
+<div class="attack-step">LFI</div>
+
+<div class="attack-arrow">→</div>
+
+<div class="attack-step">Source Disclosure</div>
+
+<div class="attack-arrow">→</div>
+
+<div class="attack-step">Secret Discovery</div>
+
+<div class="attack-arrow">→</div>
+
+<div class="attack-step">Admin API Access</div>
+
+<div class="attack-arrow">→</div>
+
+<div class="attack-step">Database Export</div>
+
+<div class="attack-arrow">→</div>
+
+<div class="attack-step">Sensitive Data Disclosure</div>
+
+</div>
+
+<figure>
+
+<img src="assets/remediation/attack-flow-diagram.png" alt="Valenfind attack flow showing the documented progression from reconnaissance to sensitive information disclosure">
+
+<figcaption>
+Figure — Documented Valenfind attack flow from reconnaissance through database disclosure.
+</figcaption>
+
+</figure>
+
+---
+
+# Reconnaissance
+
+The assessment began by identifying exposed services and web application entry points.
 
 ## Nmap Enumeration
 
-![Nmap Scan](assets/recon/nmap-scan.png)
+<figure>
 
-**Objective**
+<img src="assets/recon/nmap-scan.png" alt="Nmap scan performed during Valenfind reconnaissance">
 
-Identify running services, versions, and entry points.
+<figcaption>
+Figure — Nmap reconnaissance used to identify the exposed application service.
+</figcaption>
 
-**Outcome**
+</figure>
 
-* Port **5000** discovered.
-* Flask web application identified.
-* Initial attack surface confirmed.
+### Objective
+
+The purpose of the initial scan was to identify:
+
+- Running services
+- Exposed ports
+- Available application entry points
+
+### Result
+
+The reconnaissance phase identified:
+
+- **Port 5000**
+- A **Flask web application**
+
+This established the primary web application as the initial attack surface.
 
 ---
 
 ## Gobuster Directory Enumeration
 
-![Gobuster Enumeration](assets/recon/gobuster-enumeration.png)
+<figure>
 
-**Objective**
+<img src="assets/recon/gobuster-enumeration.png" alt="Gobuster directory enumeration performed against the Valenfind application">
 
-Discover hidden directories and application resources.
+<figcaption>
+Figure — Directory and resource enumeration performed during reconnaissance.
+</figcaption>
 
-**Outcome**
+</figure>
 
-* Authentication endpoints discovered.
-* API routes identified.
-* Additional attack surface exposed.
+### Objective
+
+Gobuster was used to identify additional application resources and exposed routes.
+
+### Result
+
+The enumeration identified additional application attack surface, including:
+
+- Authentication-related endpoints
+- API routes
+- Additional application resources
+
+The discovered routes provided additional areas for subsequent application analysis.
 
 ---
 
-# 🌐 Phase 2 — Application Exploration
+# Application Exploration
 
-The application was explored as a legitimate user before performing security testing.
+Before actively testing the application's security controls, the application was explored through normal user functionality.
+
+This established an understanding of the expected application workflow and identified user-controlled functionality that could later be examined from a security perspective.
 
 ## Homepage
 
-![Homepage](assets/application/homepage.png)
+<figure>
 
-Initial landing page for the dating application.
+<img src="assets/application/homepage.png" alt="Valenfind application homepage">
+
+<figcaption>
+Figure — Initial landing page of the Valenfind dating application.
+</figcaption>
+
+</figure>
+
+The homepage provided the initial interface for interacting with the application.
 
 ---
 
 ## User Registration
 
-![Register](assets/application/register-page.png)
+<figure>
 
-Creating a normal user account enables authenticated testing.
+<img src="assets/application/register-page.png" alt="Valenfind user registration page">
+
+<figcaption>
+Figure — User registration interface used to establish a normal application account.
+</figcaption>
+
+</figure>
+
+A normal user account was created to enable authenticated testing of functionality that was unavailable to unauthenticated users.
 
 ---
 
 ## Complete Profile
 
-![Complete Profile](assets/application/complete-profile.png)
+<figure>
 
-Profile completion introduces additional user-controlled input fields.
+<img src="assets/application/complete-profile.png" alt="Valenfind profile completion page">
+
+<figcaption>
+Figure — Profile completion interface containing additional user-controlled fields.
+</figcaption>
+
+</figure>
+
+Profile completion introduced additional user-controlled application functionality.
 
 ---
 
-## Login Page
+## Login
 
-![Login](assets/application/login-page.png)
+<figure>
 
-Authentication provides access to internal functionality.
+<img src="assets/application/login-page.png" alt="Valenfind login page">
+
+<figcaption>
+Figure — Authentication interface for accessing authenticated functionality.
+</figcaption>
+
+</figure>
+
+Successful authentication provided access to the application's internal user functionality.
 
 ---
 
 ## User Dashboard
 
-![Dashboard](assets/application/dashboard.png)
+<figure>
 
-Main authenticated dashboard displaying user profiles.
+<img src="assets/application/dashboard.png" alt="Valenfind authenticated user dashboard">
+
+<figcaption>
+Figure — Authenticated Valenfind dashboard displaying application functionality.
+</figcaption>
+
+</figure>
+
+The dashboard provided access to the authenticated application environment.
 
 ---
 
 ## Profile Page
 
-![Profile](assets/application/profile-page.png)
+<figure>
 
-The profile page contains the **Profile Theme** selector that later becomes the attack vector.
+<img src="assets/application/profile-page.png" alt="Valenfind user profile page with profile theme functionality">
+
+<figcaption>
+Figure — Profile functionality containing the Profile Theme selector that became relevant to the later security analysis.
+</figcaption>
+
+</figure>
+
+The **Profile Theme** selector was particularly important because it interacted with server-side functionality responsible for retrieving application layouts.
 
 ---
 
-# 🌍 Phase 3 — Network Traffic Analysis
+# Network Traffic Analysis
 
-The browser's Developer Tools were used to inspect client-server communication.
+Browser Developer Tools were used to inspect the communication between the browser and the Flask application.
 
 ## Network Inspector
 
-![Network Inspector](assets/application/network-inspector.png)
+<figure>
 
-### Key Finding
+<img src="assets/application/network-inspector.png" alt="Browser network inspector showing the Valenfind layout request">
 
-A request was made to:
+<figcaption>
+Figure — Network inspection revealing the dynamic layout request.
+</figcaption>
+
+</figure>
+
+The network inspection revealed the following request:
 
 ```http
 /api/fetch_layout?layout=theme_classic.html
 ```
 
-This user-controlled parameter became the primary attack surface.
+The `layout` parameter was user-controlled and therefore became an important security-testing target.
 
-> **Security Observation**
->
-> Any endpoint accepting filenames or paths should immediately be evaluated for path traversal or Local File Inclusion vulnerabilities.
+<div class="key-finding">
+
+<div class="key-finding-title">Key Finding — User-Controlled File Parameter</div>
+
+The application accepted a filename through the `layout` parameter. Parameters that influence server-side file selection should be carefully validated because insufficient validation can expose filesystem resources outside the application's intended directory.
+
+</div>
 
 ---
 
-# 📂 Phase 4 — Local File Inclusion (LFI)
+# Local File Inclusion
 
-The `layout` parameter was tested using directory traversal payloads.
+The `layout` parameter was subsequently evaluated for directory traversal and Local File Inclusion behavior.
 
 ## LFI Request
 
-![LFI Request](assets/lfi/lfi-request.png)
+<figure>
 
-The payload attempted to access files outside the intended templates directory.
+<img src="assets/lfi/lfi-request.png" alt="Valenfind Local File Inclusion request">
+
+<figcaption>
+Figure — Request demonstrating the documented Local File Inclusion testing.
+</figcaption>
+
+</figure>
+
+The parameter was tested with directory traversal payloads in an attempt to access files outside the intended templates directory.
 
 ---
 
-## Confirming LFI
+## Confirming Local File Inclusion
 
-![LFI Response](assets/lfi/etc-passwd-response.png)
+<figure>
 
-Reading `/etc/passwd` confirmed arbitrary file read capability.
+<img src="assets/lfi/etc-passwd-response.png" alt="Response showing access to the Linux etc passwd file through the LFI vulnerability">
 
-### Why This Matters
+<figcaption>
+Figure — Successful access to <code>/etc/passwd</code>, confirming arbitrary local file read behavior.
+</figcaption>
 
-This demonstrates:
+</figure>
 
-* Directory Traversal.
-* Local File Inclusion.
-* Improper input validation.
+Access to `/etc/passwd` confirmed that the application could be manipulated into reading files outside its intended template location.
+
+### Security Significance
+
+The behavior demonstrated:
+
+- Directory Traversal
+- Local File Inclusion
+- Improper input validation
+- Arbitrary local file read capability
+
+<div class="callout danger">
+
+<div class="callout-title">Security Impact</div>
+
+A file-loading parameter intended for application layouts could be redirected toward local filesystem resources. This transformed a seemingly limited theme-loading feature into a source of sensitive server-side information disclosure.
+
+</div>
 
 ---
 
 ## Process Enumeration
 
-![Process Enumeration](assets/lfi/proc-self-cmdline.png)
+<figure>
 
-Reading `/proc/self/cmdline` exposed the application's execution path, allowing discovery of the Flask project directory.
+<img src="assets/lfi/proc-self-cmdline.png" alt="Valenfind LFI access to proc self cmdline">
+
+<figcaption>
+Figure — Reading <code>/proc/self/cmdline</code> to identify the application's execution context.
+</figcaption>
+
+</figure>
+
+The LFI capability was used to read:
+
+```text
+/proc/self/cmdline
+```
+
+The resulting information exposed the application's execution path and assisted in identifying the Flask project directory.
+
+This provided a route from the initial file-read vulnerability toward application source-code discovery.
 
 ---
 
-# 🧩 Phase 5 — Source Code Analysis
+# Source Code Analysis
 
 The LFI vulnerability was leveraged to read the Flask application's source code.
 
-## Reading `app.py`
+Source disclosure significantly expanded the available attack surface because application logic, routes, and sensitive implementation details became accessible.
 
-![App Source](assets/source-analysis/app-source-code.png)
+## Application Source
+
+<figure>
+
+<img src="assets/source-analysis/app-source-code.png" alt="Flask application source code obtained during the Valenfind analysis">
+
+<figcaption>
+Figure — Flask application source-code analysis performed after establishing local file read.
+</figcaption>
+
+</figure>
 
 ### Security Findings
 
-* Flask routes exposed.
-* Application logic visible.
-* Secrets stored directly in source code.
+The source code exposed:
+
+- Flask routes
+- Application logic
+- Sensitive implementation details
+- Secrets stored directly in application source
+
+The source-code disclosure therefore provided considerably more information than the original LFI issue alone.
 
 ---
 
 ## Flask Route Review
 
-![Routes](assets/source-analysis/flask-routes.png)
+<figure>
 
-Important endpoints identified:
+<img src="assets/source-analysis/flask-routes.png" alt="Flask routes identified during source code analysis">
 
-* `fetch_layout`
-* Authentication routes.
-* Hidden administrative API.
+<figcaption>
+Figure — Flask route review revealing application and administrative functionality.
+</figcaption>
+
+</figure>
+
+Important functionality identified during source-code review included:
+
+- `fetch_layout`
+- Authentication routes
+- A hidden administrative API
+
+This demonstrated the value of source-code analysis after obtaining arbitrary local file read access.
 
 ---
 
 ## Hardcoded Administrative Secret
 
-![Secret Redacted](assets/source-analysis/hardcoded-secret-redacted.png)
+<figure>
 
-### Finding
+<img src="assets/source-analysis/hardcoded-secret-redacted.png" alt="Redacted hardcoded administrative secret identified in Flask source code">
 
-A hardcoded administrative token was present inside the application source.
+<figcaption>
+Figure — Hardcoded administrative secret identified in application source; sensitive information remains redacted.
+</figcaption>
 
-> **Responsible Disclosure**
->
-> Secrets and flags have been intentionally redacted in this portfolio.
+</figure>
+
+The application source contained a hardcoded administrative token.
+
+The token was relevant to the next stage because the hidden administrative endpoint required a custom authentication header.
+
+<div class="callout warning">
+
+<div class="callout-title">Responsible Disclosure</div>
+
+Administrative secrets and challenge-sensitive information have intentionally been redacted from this portfolio presentation where the original documentation indicates that they were redacted.
+
+</div>
 
 ---
 
-# 🔐 Phase 6 — Administrative Endpoint Discovery
+# Administrative Endpoint Discovery
 
-Source code review exposed a hidden API endpoint.
+Source-code review exposed a hidden administrative API endpoint.
 
 ## Hidden Administrative Route
 
-![Admin Endpoint](assets/source-analysis/admin-endpoint.png)
+<figure>
+
+<img src="assets/source-analysis/admin-endpoint.png" alt="Hidden administrative endpoint identified during Valenfind source code analysis">
+
+<figcaption>
+Figure — Administrative endpoint identified through Flask source-code review.
+</figcaption>
+
+</figure>
 
 The endpoint required a custom authentication header.
+
+The combination of:
+
+1. Local File Inclusion
+2. Source-code disclosure
+3. Hardcoded administrative secret
+
+provided the information necessary to interact with this restricted functionality.
 
 ---
 
 ## Authenticated Administrative Request
 
-![Admin Request](assets/source-analysis/admin-request.png)
+<figure>
 
-After supplying the recovered administrative token, the endpoint returned the application's SQLite database.
+<img src="assets/source-analysis/admin-request.png" alt="Authenticated request to the Valenfind administrative endpoint">
+
+<figcaption>
+Figure — Authenticated administrative request demonstrating access to backend database functionality.
+</figcaption>
+
+</figure>
+
+After supplying the recovered administrative token, the administrative endpoint returned the application's SQLite database.
+
+This represented a significant escalation in impact from the original file-read vulnerability.
 
 ---
 
-# 🗄️ Phase 7 — SQLite Database Analysis
+# SQLite Database Analysis
 
-The exported SQLite database was investigated locally.
+The exported SQLite database was investigated locally to understand the backend data exposed through the administrative functionality.
 
 ## Database Download
 
-![Database Download](assets/database/download-database.png)
+<figure>
 
-The administrative endpoint allowed downloading the backend database.
+<img src="assets/database/download-database.png" alt="Valenfind SQLite database download">
+
+<figcaption>
+Figure — Backend SQLite database obtained through the administrative endpoint.
+</figcaption>
+
+</figure>
+
+The administrative functionality allowed the backend database to be downloaded for local analysis.
 
 ---
 
 ## SQLite Investigation
 
-![SQLite Open](assets/database/sqlite-open.png)
+<figure>
 
-### Database Enumeration
+<img src="assets/database/sqlite-open.png" alt="SQLite database opened for local investigation">
 
-* Tables identified.
-* Schema inspected.
-* User records analyzed.
+<figcaption>
+Figure — SQLite database opened for schema and record analysis.
+</figcaption>
+
+</figure>
+
+The database investigation included:
+
+- Table identification
+- Schema inspection
+- User-record analysis
 
 ---
 
 ## Database Schema
 
-![Schema](assets/database/users-schema.png)
+<figure>
 
-Important columns included:
+<img src="assets/database/users-schema.png" alt="Valenfind users table schema">
 
-* Username.
-* Email.
-* Phone Number.
-* Address.
-* Biography.
-* Avatar.
+<figcaption>
+Figure — Documented schema of the users data within the SQLite database.
+</figcaption>
+
+</figure>
+
+The documented user-data schema included fields such as:
+
+- Username
+- Email
+- Phone Number
+- Address
+- Biography
+- Avatar
+
+The presence of these fields demonstrated that unauthorized database access could expose significant user information.
 
 ---
 
 ## Sanitized User Records
 
-![Sanitized Records](assets/database/users-table-redacted.png)
+<figure>
 
-Sensitive data has been intentionally removed from this portfolio.
+<img src="assets/database/users-table-redacted.png" alt="Redacted Valenfind user records">
 
-> **Responsible Disclosure**
->
-> Personally identifiable information, administrative secrets, passwords, and challenge flags have been redacted.
+<figcaption>
+Figure — Sanitized user records used as portfolio evidence while protecting sensitive information.
+</figcaption>
 
----
+</figure>
 
-# 🚨 Security Findings
+Sensitive information has intentionally been removed from the portfolio documentation.
 
-<table><tr><td>
+<div class="callout warning">
 
-### Vulnerabilities Identified
+<div class="callout-title">Responsible Disclosure</div>
 
-| Vulnerability               | Risk     |
-| --------------------------- | -------- |
-| Local File Inclusion        | High     |
-| Directory Traversal         | High     |
-| Source Code Disclosure      | Critical |
-| Hardcoded Secrets           | Critical |
-| Sensitive Data Exposure     | High     |
-| Insecure Administrative API | High     |
+Personally identifiable information, administrative secrets, passwords, and challenge flags have been redacted from the portfolio where applicable.
 
-</td></tr></table>
+</div>
 
 ---
 
-# 🛡️ Phase 8 — Security Impact
+# Security Findings
+
+The documented assessment identified multiple security weaknesses across the application's attack chain.
+
+| Finding | Documented Risk | Evidence / Impact |
+|---|---|---|
+| Local File Inclusion | High | Arbitrary local file read, including `/etc/passwd` |
+| Directory Traversal | High | Access to files outside the intended templates directory |
+| Source Code Disclosure | Critical | Flask application source became readable |
+| Hardcoded Secrets | Critical | Administrative token was present in source code |
+| Sensitive Data Exposure | High | SQLite database exposed user information |
+| Insecure Administrative API | High | Administrative functionality permitted database access |
+
+<div class="key-finding">
+
+<div class="key-finding-title">Primary Security Observation</div>
+
+The most important lesson from the assessment is the way multiple weaknesses chained together. The initial file-loading flaw enabled local file disclosure, which enabled source-code discovery, which exposed an administrative secret, which in turn enabled access to backend database functionality.
+
+</div>
+
+---
+
+# Security Impact
 
 ## Attack Chain Visualization
 
-![Attack Chain](assets/remediation/attack-flow-diagram.png)
+<figure>
 
-### Security Impact
+<img src="assets/remediation/attack-flow-diagram.png" alt="Valenfind security attack chain from reconnaissance through sensitive information disclosure">
 
-A single input validation flaw resulted in:
+<figcaption>
+Figure — Complete documented attack chain and resulting security impact.
+</figcaption>
 
-* Source code disclosure.
-* Administrative credential exposure.
-* Unauthorized database export.
-* Sensitive information disclosure.
+</figure>
 
-This illustrates how chained vulnerabilities amplify overall application risk.
+The assessment demonstrated how a single input-validation weakness could become substantially more severe when combined with insecure development practices.
 
----
+The documented chain resulted in:
 
-# 🔧 Phase 9 — Remediation Recommendations
+- Source-code disclosure
+- Administrative credential exposure
+- Unauthorized database export
+- Sensitive information disclosure
 
-<table><tr><td>
-
-### Secure Coding Improvements
-
-| Issue                          | Recommended Mitigation                                       |
-| ------------------------------ | ------------------------------------------------------------ |
-| Local File Inclusion           | Validate filenames against an allowlist.                     |
-| Directory Traversal            | Canonicalize paths and restrict filesystem access.           |
-| Hardcoded Secrets              | Store secrets in environment variables or a secrets manager. |
-| Administrative API             | Enforce authentication and role-based authorization.         |
-| SQLite Export                  | Restrict database exports and audit administrative actions.  |
-| Sensitive Information Exposure | Encrypt sensitive data and implement least privilege access. |
-
-</td></tr></table>
+The key security lesson is that individual vulnerabilities should not always be assessed in isolation. A relatively narrow file-read vulnerability can provide the information necessary to reach significantly more sensitive application functionality.
 
 ---
 
-# 📚 Skills Demonstrated
+# Remediation Recommendations
 
-This room demonstrates hands-on experience with:
+The recommended controls below are derived directly from the documented vulnerabilities.
 
-* Linux Enumeration
-* Nmap
-* Gobuster
-* Browser Developer Tools
-* HTTP Request Analysis
-* Local File Inclusion (LFI)
-* Directory Traversal
-* Flask Source Code Review
-* API Testing
-* SQLite Investigation
-* Secure Coding Analysis
-* Vulnerability Remediation
+| Issue | Recommended Mitigation |
+|---|---|
+| Local File Inclusion | Validate filenames against an allowlist |
+| Directory Traversal | Canonicalize paths and restrict filesystem access |
+| Hardcoded Secrets | Store secrets in environment variables or a dedicated secrets manager |
+| Administrative API | Enforce authentication and role-based authorization |
+| SQLite Export | Restrict database exports and audit administrative actions |
+| Sensitive Information Exposure | Encrypt sensitive data and implement least-privilege access |
+
+## Local File Inclusion
+
+The application should avoid accepting arbitrary filesystem paths from user-controlled input.
+
+A strict allowlist of permitted layout identifiers should be preferred over accepting arbitrary filenames.
+
+Where filesystem access is required, paths should be canonicalized and verified against an explicitly permitted application directory.
 
 ---
 
-# 📂 Repository Structure
+## Directory Traversal
+
+The application should prevent traversal outside the intended resource directory.
+
+Filesystem operations should:
+
+- Resolve the requested path
+- Verify that the resulting canonical path remains inside the permitted directory
+- Reject unexpected path components
+- Prefer application-level identifiers over raw filesystem paths
+
+---
+
+## Hardcoded Administrative Secrets
+
+Administrative secrets should not be embedded directly in application source code.
+
+The documented recommendation is to use:
+
+- Environment variables
+- A secrets-management system
+- Proper secret rotation
+- Restricted access to production credentials
+
+This also reduces the impact of accidental source-code disclosure.
+
+---
+
+## Administrative API Security
+
+Administrative functionality should enforce strong authentication and authorization.
+
+The endpoint should verify:
+
+- Authentication
+- Administrative authorization
+- Appropriate role or privilege
+- Request legitimacy
+
+Administrative operations should also be logged and monitored.
+
+---
+
+## Database Export Controls
+
+Database export functionality should be tightly restricted.
+
+Recommended controls include:
+
+- Restricting exports to authorized administrators
+- Auditing administrative export operations
+- Limiting database access according to least privilege
+- Protecting exported database files
+- Preventing unnecessary exposure of backend storage
+
+---
+
+## Sensitive Information Protection
+
+Sensitive user information should be protected through appropriate access controls and data-protection mechanisms.
+
+The documented remediation recommends:
+
+- Encrypting sensitive data where appropriate
+- Applying least-privilege access
+- Restricting administrative access
+- Preventing unauthorized database disclosure
+
+---
+
+# Tools Used
+
+The following tools and technologies are explicitly documented in the original walkthrough.
+
+| Tool / Technology | Purpose |
+|---|---|
+| Nmap | Network and service reconnaissance |
+| Gobuster | Directory and application-resource enumeration |
+| Browser Developer Tools | HTTP/network request inspection |
+| Python Flask | Application framework analyzed during source review |
+| SQLite | Backend database investigated after administrative access |
+
+<div class="tool-list">
+
+<span class="tool-tag">Nmap</span>
+<span class="tool-tag">Gobuster</span>
+<span class="tool-tag">Browser Developer Tools</span>
+<span class="tool-tag">Flask</span>
+<span class="tool-tag">SQLite</span>
+
+</div>
+
+---
+
+# Key Findings
+
+<div class="key-finding">
+
+<div class="key-finding-title">Finding 01 — User-Controlled Layout Loading</div>
+
+The application exposed a `layout` parameter through the `/api/fetch_layout` endpoint. This parameter became the entry point for directory traversal and Local File Inclusion testing.
+
+</div>
+
+<div class="key-finding">
+
+<div class="key-finding-title">Finding 02 — Arbitrary Local File Read</div>
+
+The documented ability to retrieve `/etc/passwd` confirmed that the layout-loading functionality could access files outside its intended directory.
+
+</div>
+
+<div class="key-finding">
+
+<div class="key-finding-title">Finding 03 — Source-Code Disclosure</div>
+
+The local file-read capability enabled access to the Flask application's source code, exposing application logic and additional routes.
+
+</div>
+
+<div class="key-finding">
+
+<div class="key-finding-title">Finding 04 — Hardcoded Administrative Secret</div>
+
+The application source contained an administrative token that was subsequently relevant to accessing the hidden administrative functionality.
+
+</div>
+
+<div class="key-finding">
+
+<div class="key-finding-title">Finding 05 — Database Exposure</div>
+
+Authenticated access to the administrative functionality resulted in the application's SQLite database being returned, exposing backend user information.
+
+</div>
+
+---
+
+# Lessons Learned
+
+## Reconnaissance Comes First
+
+Initial service and directory enumeration established the available application attack surface before deeper testing began.
+
+Understanding exposed functionality reduced unnecessary testing and helped identify the application entry points.
+
+## Normal Application Behavior Can Reveal Attack Surface
+
+Exploring the application as a legitimate user exposed the Profile Theme functionality.
+
+The subsequent network inspection revealed that the theme selection interacted with a server-side layout-loading endpoint.
+
+## User-Controlled File Parameters Require Careful Validation
+
+The `layout` parameter demonstrated why applications should not blindly trust user-controlled filenames.
+
+A feature that appears to load a simple application template can become a serious security issue when filesystem boundaries are not enforced.
+
+## Source Code Can Amplify a Vulnerability
+
+The LFI vulnerability initially provided file-read capability.
+
+Once application source code became accessible, additional functionality and a hardcoded administrative secret could be identified.
+
+This demonstrates why source-code disclosure can significantly increase the impact of another vulnerability.
+
+## Vulnerabilities Can Chain Together
+
+The Valenfind assessment demonstrates a complete vulnerability chain:
+
+<div class="attack-chain">
+
+<div class="attack-step">Input Validation Failure</div>
+
+<div class="attack-arrow">→</div>
+
+<div class="attack-step">LFI</div>
+
+<div class="attack-arrow">→</div>
+
+<div class="attack-step">Source Disclosure</div>
+
+<div class="attack-arrow">→</div>
+
+<div class="attack-step">Secret Exposure</div>
+
+<div class="attack-arrow">→</div>
+
+<div class="attack-step">Admin API</div>
+
+<div class="attack-arrow">→</div>
+
+<div class="attack-step">Database Exposure</div>
+
+</div>
+
+The overall impact was substantially greater than the initial vulnerability considered independently.
+
+## Defensive Understanding
+
+From a defensive perspective, the room reinforces the importance of:
+
+- Strict input validation
+- Filesystem boundary enforcement
+- Secure secret management
+- Strong administrative authorization
+- Database-access controls
+- Protection of sensitive user information
+
+---
+
+# Repository Structure
+
+The documented repository structure is:
 
 ```text
 Valenfind-TryHackMe-Walkthrough/
@@ -477,34 +1033,55 @@ Valenfind-TryHackMe-Walkthrough/
 └── LICENSE
 ```
 
----
-
-# 📖 Full Technical Documentation
-
-The complete walkthrough, methodology, commands, explanations, and screenshots are available here:
-
-**➡️ [View Complete Documentation](../Documentation/Valenfind_Documentation.md)**
+The GitHub Pages documentation uses the assets stored beneath `docs/assets/`.
 
 ---
 
-# 🏁 Conclusion
+# Full Technical Documentation
 
-The **Valenfind** room demonstrates how a seemingly minor input validation issue can evolve into a complete application compromise when combined with insecure development practices.
+The repository also contains the complete technical walkthrough with the detailed methodology, commands, explanations, and supporting screenshots.
 
-This walkthrough showcases a structured penetration testing methodology, emphasizing both **technical exploitation** and **secure software development recommendations** suitable for blue-team and application security learning.
+**[View Complete Technical Documentation](../Documentation/Valenfind_Documentation.md)**
 
 ---
 
-<div align="center">
+# Room Reference
 
-## 👨‍💻 Author
+The original documentation identifies the challenge as the **Valenfind** room on TryHackMe.
 
-### **Anurag Revankar**
+**Platform:** [TryHackMe](https://tryhackme.com/)
 
-**Cybersecurity | SOC | Web Application Security**
+**Room:** Valenfind
 
-*This repository is maintained as part of my cybersecurity portfolio and documents an educational TryHackMe room completed in a controlled lab environment.*
+---
 
-⭐ **Thank you for visiting my CTF portfolio!**
+# Responsible Use
 
-</div>
+> This documentation was created for authorized cybersecurity training and CTF environments. Techniques described here should only be used against systems for which you have explicit permission to test.
+
+The techniques demonstrated in this documentation are intended for controlled educational environments and security research.
+
+Sensitive information shown in the original material has been intentionally redacted where applicable for responsible portfolio publication.
+
+---
+
+# Conclusion
+
+The **Valenfind** room demonstrates how a seemingly narrow input-validation issue can develop into a broader application compromise when combined with insecure development practices.
+
+The documented attack began with reconnaissance and application enumeration, progressed through network request analysis and Local File Inclusion, and ultimately enabled Flask source-code disclosure, administrative secret discovery, administrative API access, and SQLite database exposure.
+
+The assessment highlights several important application-security principles:
+
+- User-controlled filesystem parameters require strict validation.
+- Directory traversal must be prevented through secure path handling.
+- Application source code should not expose secrets.
+- Administrative functionality requires strong authentication and authorization.
+- Backend databases should never be unnecessarily exposed.
+- Sensitive user information requires appropriate access controls.
+
+From a penetration-testing perspective, the room demonstrates the importance of following evidence from one stage of an assessment into the next rather than treating individual findings as isolated issues.
+
+From a defensive perspective, it demonstrates how multiple weaknesses can combine to produce a substantially larger security impact.
+
+---

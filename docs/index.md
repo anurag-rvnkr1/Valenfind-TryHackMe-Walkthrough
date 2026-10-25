@@ -1,17 +1,3 @@
----
-layout: default
-title: "Valenfind — TryHackMe CTF"
-description: "Professional security analysis of the TryHackMe Valenfind room, documenting reconnaissance, Local File Inclusion, Flask source-code disclosure, administrative API access, SQLite analysis, and remediation."
-category: "Web Application Security"
-tags:
-  - TryHackMe
-  - Web Security
-  - LFI
-  - Flask
-  - SQLite
-  - Source Code Analysis
----
-
 <div class="ctf-hero">
 
 <h1>Valenfind</h1>
